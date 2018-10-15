@@ -225,7 +225,7 @@
          strcat(str,getIPV6NatSubnet(96,ipv6addr));
          strcat(str,"/96 dev nat64\n");
          fprintf(routing,str);
-         fprintf(routing,"mv tayga.conf /etc/tayga.conf\n");
+         fprintf(routing,"mv tayga.conf /usr/local/etc/tayga.conf\n");
          fprintf(routing,"tayga\n");
          fclose(routing);
          system("chmod 755 routing.sh");
