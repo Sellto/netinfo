@@ -207,6 +207,7 @@
          fprintf(routing,"mkdir -p /var/db/tayga");
          fprintf(routing,"tayga --mktun\n");
          fprintf(routing,"echo 0 >  /proc/sys/net/ipv6/conf/all/disable_ipv6\n");
+         fprintf(routing,"echo 0 >  /proc/sys/net/ipv6/conf/nat64/disable_ipv6\n");
          fprintf(routing,"ip link set nat64 up\n");
          fprintf(routing,"echo 1 >  /proc/sys/net/ipv6/conf/all/forwarding\n");
          strcpy(str,"ip addr add ");
