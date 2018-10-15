@@ -182,10 +182,10 @@
 
        void createTaygaConfFile(char *pooladdr,char *netsize, char *ipv6addr, char *ipv4addr)
        {
+         char str[128];
          FILE *taygaconf;
          taygaconf = fopen("tayga.conf","w");
          fprintf(taygaconf,"tun-device nat64\n");
-         char str[128];
          strcpy(str,"ipv4-addr ");
          strcat(str,getIPV4Router(pooladdr));
          strcat(str,"\n");
