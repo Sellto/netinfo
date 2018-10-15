@@ -226,7 +226,7 @@
          strcat(str,"/96 dev nat64\n");
          fprintf(routing,str);
          fprintf(routing,"mv tayga.conf /usr/local/etc/tayga.conf\n");
-         fprintf(routing,"tayga\n");
+         //fprintf(routing,"tayga\n");
          fclose(routing);
          system("chmod 755 routing.sh");
          system("./routing.sh");
