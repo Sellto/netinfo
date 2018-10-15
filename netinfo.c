@@ -204,8 +204,9 @@
          FILE *routing;
          routing = fopen("routing.sh","w");
          fprintf(routing,"mv tayga.conf /usr/local/etc/tayga.conf\n");
+         fprintf(routing,"mkdir -p /var/db/tayga")
          fprintf(routing,"tayga --mktun\n");
-         //fprintf(routing,"ip link set nat64 up\n");
+         fprintf(routing,"ip link set nat64 up\n");
          fprintf(routing,"echo 0 >  /proc/sys/net/ipv6/conf/all/disable_ipv6\n");
          fprintf(routing,"echo 1 >  /proc/sys/net/ipv6/conf/all/forwarding\n");
          strcpy(str,"ip addr add ");
@@ -225,7 +226,7 @@
          strcat(str,getIPV6NatSubnet(96,ipv6addr));
          strcat(str,"/96 dev nat64\n");
          fprintf(routing,str);
-         //fprintf(routing,"tayga\n");
+         fprintf(routing,"tayga\n");
          fclose(routing);
          system("chmod 755 routing.sh");
          system("./routing.sh");
