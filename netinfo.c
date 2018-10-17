@@ -138,7 +138,6 @@
          taygaconf = fopen("tayga.conf","w");
          fprintf(taygaconf,"tun-device nat64\n");
          fprintf(taygaconf,"ipv4-addr 46.0.0.1\n");
-         fprintf(taygaconf,"ipv6-addr 6400::1\n");
          fprintf(taygaconf,"prefix 6400::/96\n");
          fprintf(taygaconf,"dynamic-pool 46.0.0.0/8\n");
          fprintf(taygaconf,"data-dir /var/db/tayga\n");
