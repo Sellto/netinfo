@@ -9,20 +9,15 @@
        #define MAX_LENGTH 128
        #define DEFAULT_IP6_PREF_LGT 64
 
-
-
-
-       char *getIPV6NatSubnet(int net_lenght, char *addr);
-       char *getIPV6Prefix(int Lenght, char *addr);
        char *getIPV6Router(char *addr);
        char *getIPV4Router(char *addr);
-       void createTaygaConfFile(char *pooladdr,char *netsize, char *ipv6addr, char *ipv4addr);
+       void createTaygaConfFile(char *ipv6addr, char *ipv4addr);
 
        int main(int argc, char *argv[]){
            struct ifaddrs *ifaddr, *ifa;
            int err , match;
            char addr[MAX_LENGTH], net[MAX_LENGTH];
-           char *ipv4name,*ipv4addr,*ipv6name,*ipv6addr;
+           char *name,*ipv4addr,*ipv6addr;
            regex_t preg;
 
            if (getifaddrs(&ifaddr) == -1) {
@@ -45,8 +40,8 @@
                   {
                     ipv6addr = malloc(strlen(addr) + 1);
                     strcpy(ipv6addr,addr);
-                    ipv6name = malloc(strlen(ifa->ifa_name) + 1);
-                    strcpy(ipv6name,ifa->ifa_name);
+                    name = malloc(strlen(ifa->ifa_name) + 1);
+                    strcpy(name,ifa->ifa_name);
                   }
                 }
               }
@@ -55,27 +50,22 @@
             for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
                if (ifa->ifa_addr == NULL)
                     continue;
-               if(ifa->ifa_addr->sa_family == AF_INET && strcmp(ifa->ifa_name,ipv6name))
+               if(ifa->ifa_addr->sa_family == AF_INET && !(strcmp(ifa->ifa_name,name)))
                {
                  inet_ntop(AF_INET, &(((struct sockaddr_in *)ifa->ifa_addr)->sin_addr), addr, MAX_LENGTH);
                  ipv4addr = malloc(strlen(addr) + 1);
                  strcpy(ipv4addr,addr);
-                 ipv4name = malloc(strlen(ifa->ifa_name) + 1);
-                 strcpy(ipv4name,ifa->ifa_name);
                }
             }
 
             if(argc==1)
             {
               printf("Available commands:\n\n");
-              printf("--ipv4name\t\t\t\tIPV4 interface name\n");
+              printf("--intname\t\t\t\tIPV4 interface name\n");
               printf("--ipv4addr\t\t\t\tIPV4 address\n");
-              printf("--ipv4router\t\t\t\tIPV4 router address\n\n");
+              printf("--ipv4router\t\t\t\tIPV4 router address\n");
               printf("--ipv6addr\t\t\t\tIPV6 address\n");
-              printf("--ipv6name\t\t\t\tIPV6 interface name\n");
-              printf("--ipv6natsubnet\t\t\t\tIPV6 nat subnet\n");
               printf("--ipv6router\t\t\t\tIPV6 router address\n");
-              printf("--ipv6net\t\t\t\tIPV6 prefix\n\n");
               printf("--taygaconf [POOL_NETWORK][MASK]\tauto configuration of tayga\n\n");
             }
             else if (!(strcmp(argv[1],"--ipv6addr")))
@@ -86,17 +76,9 @@
             {
               printf("%s\n",ipv4addr);
             }
-            else if (!(strcmp(argv[1],"--ipv6name")))
+            else if (!(strcmp(argv[1],"--intname")))
             {
-              printf("%s\n",ipv6name);
-            }
-            else if (!(strcmp(argv[1],"--ipv4name")))
-            {
-              printf("%s\n",ipv4name);
-            }
-            else if (!(strcmp(argv[1],"--ipv6natsubnet")))
-            {
-              printf("%s\n",getIPV6NatSubnet(96,ipv6addr));
+              printf("%s\n",name);
             }
             else if (!(strcmp(argv[1],"--ipv6router")))
             {
@@ -106,51 +88,14 @@
             {
               printf("%s\n",getIPV4Router(ipv4addr));
             }
-            else if (!(strcmp(argv[1],"--ipv6net")))
-            {
-              printf("%s\n",getIPV6Prefix(DEFAULT_IP6_PREF_LGT,ipv6addr));
-            }
             else if (!(strcmp(argv[1],"--taygaconf")))
             {
-              createTaygaConfFile(argv[2],argv[3],ipv6addr,ipv4addr);
+              createTaygaConfFile(ipv6addr,ipv4addr);
             }
            freeifaddrs(ifaddr);
            exit(EXIT_SUCCESS);
        }
 
-       char *getIPV6NatSubnet(int net_lenght, char *addr)
-       {
-         char *expanse_addr,*collapse_addr,*save;
-         expanse_addr=malloc(net_lenght);
-         collapse_addr=malloc(net_lenght);
-         inet_pton(AF_INET6, addr, expanse_addr);
-         expanse_addr[net_lenght/8-2]=0x00;
-         expanse_addr[net_lenght/8-1]=0x04;
-         for (int i = net_lenght/8;i < 16; i++)
-         {
-             expanse_addr[i] = 0x00;
-         }
-         inet_ntop(AF_INET6, expanse_addr,collapse_addr, MAX_LENGTH);
-         save = malloc(strlen(collapse_addr) + 1);
-         strcpy(save,collapse_addr);
-         return save;
-       }
-
-       char *getIPV6Prefix(int net_lenght, char *addr)
-       {
-         char *expanse_addr,*collapse_addr,*save;
-         expanse_addr=malloc(net_lenght);
-         collapse_addr=malloc(net_lenght);
-         inet_pton(AF_INET6, addr, expanse_addr);
-         for (int i = net_lenght/8;i < 16; i++)
-         {
-             expanse_addr[i] = 0x00;
-         }
-         inet_ntop(AF_INET6, expanse_addr,collapse_addr, MAX_LENGTH);
-         save = malloc(strlen(collapse_addr) + 1);
-         strcpy(save,collapse_addr);
-         return save;
-       }
 
        char *getIPV6Router(char *addr)
        {
@@ -180,25 +125,16 @@
          return save;
        }
 
-       void createTaygaConfFile(char *pooladdr,char *netsize, char *ipv6addr, char *ipv4addr)
+       void createTaygaConfFile(char *ipv6addr, char *ipv4addr)
        {
          char str[128];
          FILE *taygaconf;
          taygaconf = fopen("tayga.conf","w");
          fprintf(taygaconf,"tun-device nat64\n");
-         strcpy(str,"ipv4-addr ");
-         strcat(str,getIPV4Router(pooladdr));
-         strcat(str,"\n");
-         fprintf(taygaconf,str);
-         strcpy(str,"prefix ");
-         strcat(str,getIPV6NatSubnet(96,ipv6addr));
-         strcat(str,"/96\n");
-         fprintf(taygaconf,str);
-         strcpy(str,"dynamic-pool ");
-         strcat(str,pooladdr);
-         strcat(str,netsize);
-         strcat(str,"\n");
-         fprintf(taygaconf,str);
+         fprintf(taygaconf,"ipv4-addr 46.0.0.1\n");
+         fprintf(taygaconf,"ipv6-addr 6400::1\n");
+         fprintf(taygaconf,"prefix 6400::/96\n");
+         fprintf(taygaconf,"dynamic-pool 46.0.0.0/8\n");
          fprintf(taygaconf,"data-dir /var/db/tayga");
          fclose(taygaconf);
          FILE *routing;
@@ -218,15 +154,8 @@
          strcat(str,getIPV6Router(ipv6addr));
          strcat(str," dev nat64\n");
          fprintf(routing,str);
-         strcpy(str,"ip route add ");
-         strcat(str,pooladdr);
-         strcat(str,netsize);
-         strcat(str," dev nat64\n");
-         fprintf(routing,str);
-         strcpy(str,"ip route add ");
-         strcat(str,getIPV6NatSubnet(96,ipv6addr));
-         strcat(str,"/96 dev nat64\n");
-         fprintf(routing,str);
+         fprintf(routing,"ip route add 46.0.0.0/8 dev nat64\n");
+         fprintf(routing,"ip route add 6400::/96 dev nat64\n");
          fprintf(routing,"tayga -d\n");
          fclose(routing);
          system("chmod 755 routing.sh");
