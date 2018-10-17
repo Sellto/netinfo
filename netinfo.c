@@ -11,7 +11,8 @@
 
        char *getIPV6Router(char *addr);
        char *getIPV4Router(char *addr);
-       void createTaygaConfFile(char *ipv6addr, char *ipv4addr);
+       void createTaygaConfFile();
+       void taygaConf(char *ipv6addr, char *ipv4addr);
 
        int main(int argc, char *argv[]){
            struct ifaddrs *ifaddr, *ifa;
@@ -61,12 +62,13 @@
             if(argc==1)
             {
               printf("Available commands:\n\n");
-              printf("--intname\t\t\t\tIPV4 interface name\n");
+              printf("--intname\t\t\t\tused interface name\n");
               printf("--ipv4addr\t\t\t\tIPV4 address\n");
               printf("--ipv4router\t\t\t\tIPV4 router address\n");
               printf("--ipv6addr\t\t\t\tIPV6 address\n");
               printf("--ipv6router\t\t\t\tIPV6 router address\n");
-              printf("--taygaconf [POOL_NETWORK][MASK]\tauto configuration of tayga\n\n");
+              printf("--taygaconf\t\t\t\tcreate tayga.conf file\n");
+              printf("--launchautoconf \t\t\tlaunch tayga with autoconf\n\n");
             }
             else if (!(strcmp(argv[1],"--ipv6addr")))
             {
@@ -90,7 +92,11 @@
             }
             else if (!(strcmp(argv[1],"--taygaconf")))
             {
-              createTaygaConfFile(ipv6addr,ipv4addr);
+              createTaygaConfFile();
+            }
+            else if (!(strcmp(argv[1],"--launchautoconf")))
+            {
+              taygaConf(ipv6addr,ipv4addr);
             }
            freeifaddrs(ifaddr);
            exit(EXIT_SUCCESS);
@@ -125,9 +131,9 @@
          return save;
        }
 
-       void createTaygaConfFile(char *ipv6addr, char *ipv4addr)
+       void createTaygaConfFile()
        {
-         char str[128];
+
          FILE *taygaconf;
          taygaconf = fopen("tayga.conf","w");
          fprintf(taygaconf,"tun-device nat64\n");
@@ -135,12 +141,17 @@
          fprintf(taygaconf,"ipv6-addr 6400::1\n");
          fprintf(taygaconf,"prefix 6400::/96\n");
          fprintf(taygaconf,"dynamic-pool 46.0.0.0/8\n");
-         fprintf(taygaconf,"data-dir /var/db/tayga");
+         fprintf(taygaconf,"data-dir /var/db/tayga\n");
          fclose(taygaconf);
+      }
+
+      void taygaConf(char *ipv6addr, char *ipv4addr)
+      {
+         char str[128];
          FILE *routing;
          routing = fopen("routing.sh","w");
          fprintf(routing,"mv tayga.conf /usr/local/etc/tayga.conf\n");
-         fprintf(routing,"mkdir -p /var/db/tayga");
+         fprintf(routing,"mkdir -p /var/db/tayga\n");
          fprintf(routing,"echo 0 >  /proc/sys/net/ipv6/conf/all/disable_ipv6\n");
          fprintf(routing,"tayga --mktun\n");
          fprintf(routing,"echo 0 >  /proc/sys/net/ipv6/conf/nat64/disable_ipv6\n");
