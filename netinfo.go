@@ -3,6 +3,7 @@ package main
 import (
   "fmt"
   "log"
+  "net"
   "github.com/hashicorp/go-sockaddr"
   "strconv"
   "os"
@@ -19,6 +20,18 @@ func getNAT64pool(inter string) string {
   return "172.46."+strconv.Itoa(getNodeNum(inter))+".0/24"
 }
 
+func getDNSserver(dns string,prefix string) string {
+  ips, err := net.LookupIP(dns)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not get IPs: %v\n", err)
+		os.Exit(1)
+	}
+  ipv4,_ := sockaddr.NewIPv6Addr(prefix+ips[0].String())
+	return ipv4.String()
+
+
+}
+
 func getNAT64addr(inter string) string {
   return "172.46."+strconv.Itoa(getNodeNum(inter))+".1"
 }
@@ -28,6 +41,8 @@ func getNAT64addr(inter string) string {
 
 func main() {
    var pnin string
+   var dns string
+   var prefix string
     app := cli.NewApp()
     app.Name = "Netinfo"
     app.Usage= "Program used to get the tayga pool IPv4 address based on the pod address gived by flannel"
@@ -50,6 +65,27 @@ func main() {
             Usage: "physical network interface name",
             Destination: &pnin,
           },
+        },
+       },
+       {
+         Name:    "translate",
+         Aliases: []string{"d"},
+         Usage:   "translate the dns ipv4 to tayga ipv6 address",
+         Action:  func(c *cli.Context) error {
+           fmt.Println(getDNSserver(dns,prefix))
+           return nil
+         },
+         Flags: []cli.Flag {
+           cli.StringFlag{
+            Name: "dns",
+            Usage: "dns value to transform",
+            Destination: &dns,
+          },
+          cli.StringFlag{
+           Name: "prefix",
+           Usage: "prefix ipv6 to put in front of the ipv4 address",
+           Destination: &prefix,
+         },
         },
        },
        {
